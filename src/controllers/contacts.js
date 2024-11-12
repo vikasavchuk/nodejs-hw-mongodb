@@ -10,8 +10,19 @@ import createHttpError from 'http-errors';
 const { NotFound } = createHttpError;
 
 export const getAllContacts = async (req, res) => {
-  const contacts = await getAllContactsService();
-  res.status(200).json({ status: 200, message: 'Successfully found contacts!', data: contacts });
+  const { page = 1, perPage = 10, sortBy = 'name', sortOrder = 'asc', type, isFavourite } = req.query;
+  
+  const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+  const filter = {};
+  if (type) filter.contactType = type;
+  if (isFavourite) filter.isFavourite = isFavourite === 'true';
+
+  const contacts = await getAllContactsService(Number(page), Number(perPage), sort, filter);
+  res.status(200).json({
+    status: 200,
+    message: 'Successfully found contacts!',
+    data: contacts,
+  });
 };
 
 export const getContactById = async (req, res) => {
@@ -30,7 +41,7 @@ export const updateContact = async (req, res) => {
   const { contactId } = req.params;
   const contact = await updateContactService(contactId, req.body);
   if (!contact) throw new NotFound('Contact not found');
-  res.status(200).json({ status: 200, message: 'Successfully patched a contact!', data: contact });
+  res.status(200).json({ status: 200, message: 'Successfully updated a contact!', data: contact });
 };
 
 export const deleteContact = async (req, res) => {
@@ -39,4 +50,3 @@ export const deleteContact = async (req, res) => {
   if (!contact) throw new NotFound('Contact not found');
   res.status(204).send();
 };
-
