@@ -1,17 +1,20 @@
 import express from 'express';
 import { isValidId } from '../middlewares/isValidId.js';
 import { validateBody } from '../middlewares/validateBody.js';
+import { authenticate } from '../middlewares/authenticate.js'; 
 import { contactCreateSchema, contactUpdateSchema } from '../validation/contactSchemas.js';
 import {
   getAllContacts,
   getContactById,
   createContact,
   updateContact,
-  deleteContact
+  deleteContact,
 } from '../controllers/contacts.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 const router = express.Router();
+
+router.use(authenticate); 
 
 router.get('/', ctrlWrapper(getAllContacts));
 router.get('/:contactId', isValidId, ctrlWrapper(getContactById));
@@ -20,4 +23,3 @@ router.patch('/:contactId', isValidId, validateBody(contactUpdateSchema), ctrlWr
 router.delete('/:contactId', isValidId, ctrlWrapper(deleteContact));
 
 export default router;
-
