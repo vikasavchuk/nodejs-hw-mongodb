@@ -17,7 +17,7 @@ export const authenticate = async (req, res, next) => {
 
     req.user = user;
     next();
-  } catch (error) {
+  } catch {
     next(new Unauthorized('Access token expired'));
   }
 };
