@@ -12,7 +12,7 @@ export const createUser = async (userData) => {
   const { name, email, password } = userData;
   const existingUser = await User.findOne({ email });
   if (existingUser) throw new createHttpError.Conflict('Email in use');
-  
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({ name, email, password: hashedPassword });
   return await user.save();
@@ -24,7 +24,7 @@ export const loginUser = async (email, password) => {
     throw new createHttpError.Unauthorized('Invalid email or password');
   }
 
-  await Session.deleteOne({ userId: user._id }); 
+  await Session.deleteOne({ userId: user._id });
   const tokens = generateTokens(user._id);
   const session = new Session({ userId: user._id, ...tokens });
   await session.save();
@@ -47,7 +47,7 @@ export const generateTokens = (userId) => {
 export const verifyToken = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET);
-  } catch (err) {
+  } catch {
     throw new createHttpError.Unauthorized('Access token expired');
   }
 };
@@ -56,14 +56,14 @@ export const refreshSession = async (refreshToken) => {
   try {
     const decoded = jwt.verify(refreshToken, JWT_SECRET);
     const userId = decoded.userId;
-    await Session.deleteOne({ userId }); 
+    await Session.deleteOne({ userId });
 
     const tokens = generateTokens(userId);
     const session = new Session({ userId, ...tokens });
     await session.save();
 
     return tokens;
-  } catch (err) {
+  } catch {
     throw new createHttpError.Unauthorized('Invalid refresh token');
   }
 };
