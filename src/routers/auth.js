@@ -1,13 +1,35 @@
 import express from 'express';
+import {
+  registerController,
+  loginController,
+  refreshTokenController,
+  logoutController,
+} from '../controllers/auth.js';
+import { registerSchema, loginSchema } from '../validation/auth.js';
+import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { validateBody } from '../middlewares/validateBody.js';
-import { register, login, refresh, logout } from '../controllers/auth.js';
-import { userRegisterSchema, userLoginSchema } from '../validation/authSchemas.js';
 
-const router = express.Router();
+const authRouters = express.Router();
+const jsonParser = express.json({
+  type: 'application/json',
+});
 
-router.post('/register', validateBody(userRegisterSchema), register);
-router.post('/login', validateBody(userLoginSchema), login);
-router.post('/refresh', refresh);
-router.post('/logout', logout);
+authRouters.post(
+  '/register',
+  jsonParser,
+  validateBody(registerSchema),
+  ctrlWrapper(registerController),
+);
 
-export default router;
+authRouters.post(
+  '/login',
+  jsonParser,
+  validateBody(loginSchema),
+  ctrlWrapper(loginController),
+);
+
+authRouters.post('/refresh', ctrlWrapper(refreshTokenController));
+
+authRouters.post('/logout', ctrlWrapper(logoutController));
+
+export default authRouters;
