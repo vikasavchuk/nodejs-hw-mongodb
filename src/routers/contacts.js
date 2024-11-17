@@ -1,25 +1,56 @@
 import express from 'express';
-import { isValidId } from '../middlewares/isValidId.js';
-import { validateBody } from '../middlewares/validateBody.js';
-import { authenticate } from '../middlewares/authenticate.js'; 
-import { contactCreateSchema, contactUpdateSchema } from '../validation/contactSchemas.js';
 import {
-  getAllContacts,
-  getContactById,
-  createContact,
-  updateContact,
-  deleteContact,
+  getContactByIdController,
+  getContactsController,
+  createContactController,
+  updateContactController,
+  deleteContactController,
 } from '../controllers/contacts.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
+import { isValidId } from '../middlewares/isValidId.js';
+import { validateBody } from '../middlewares/validateBody.js';
+import { contactSchema } from '../validation/validation.js';
+import { authenticate } from '../middlewares/authenticate.js';
+
 const router = express.Router();
 
-router.use(authenticate); 
+const jsonParser = express.json({
+  type: 'application/json',
+});
 
-router.get('/', ctrlWrapper(getAllContacts));
-router.get('/:contactId', isValidId, ctrlWrapper(getContactById));
-router.post('/', validateBody(contactCreateSchema), ctrlWrapper(createContact));
-router.patch('/:contactId', isValidId, validateBody(contactUpdateSchema), ctrlWrapper(updateContact));
-router.delete('/:contactId', isValidId, ctrlWrapper(deleteContact));
+router.get('/', authenticate, ctrlWrapper(getContactsController));
 
+router.get(
+  '/:contactId',
+  authenticate,
+  isValidId,
+  ctrlWrapper(getContactByIdController),
+);
+
+router.post(
+  '/',
+  jsonParser,
+  authenticate,
+  validateBody(contactSchema),
+  ctrlWrapper(createContactController),
+);
+
+router.patch(
+  '/:contactId',
+  isValidId,
+  jsonParser,
+  authenticate,
+  validateBody(contactSchema),
+  ctrlWrapper(updateContactController),
+);
+
+router.delete(
+  '/:contactId',
+  isValidId,
+  authenticate,
+  ctrlWrapper(deleteContactController),
+);
+// router.use(authenticate);
+// router.get('/', ctrlWrapper(getContactsController));
 export default router;
