@@ -1,14 +1,19 @@
+import path from 'node:path';
+
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import pino from 'pino-http';
 import 'dotenv/config';
 import { initMongoConnection } from './db/initMongoConnection.js';
+
 import routers from './routers/index.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
+
+app.use('/photos', express.static(path.resolve('src', 'public/photos')));
 
 export const setupServer = async () => {
   try {

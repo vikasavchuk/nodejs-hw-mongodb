@@ -1,3 +1,7 @@
+import fs from 'node:fs/promises';
+
+import path from 'node:path';
+
 import createHttpError from 'http-errors';
 import {
   getAllContacts,
@@ -6,6 +10,7 @@ import {
   updateContact,
   deleteContact,
 } from '../services/contacts.js';
+import { uploadToCloudinary } from '../utils/uploadToCloudinary.js';
 
 export const getContactsController = async (req, res) => {
   const {
@@ -73,9 +78,28 @@ export const getContactByIdController = async (req, res) => {
 };
 
 export const createContactController = async (req, res) => {
+  let photo = null;
+
+  if (typeof req.file !== 'undefined') {
+    if (process.env.ENABLE_CLOUDINARY === 'true') {
+      const result = await uploadToCloudinary(req.file.path);
+      await fs.unlink(req.file.path);
+
+      photo = result.secure_url;
+    }
+  } else {
+    await fs.rename(
+      req.file.path,
+      path.resolve('src', 'public/photos', req.file.filename),
+    );
+
+    photo = `http://localhost:3000/photos/${req.file.filename}`;
+  }
+
   const newContact = await createContact({
     ...req.body,
     userId: req.user._id,
+    photo,
   });
 
   res.status(201).json({
@@ -87,8 +111,28 @@ export const createContactController = async (req, res) => {
 
 export const updateContactController = async (req, res) => {
   const { contactId } = req.params;
+  let photo = null;
 
-  const result = await updateContact(contactId, req.body, req.user._id);
+  if (req.file) {
+    if (process.env.ENABLE_CLOUDINARY === 'true') {
+      const result = await uploadToCloudinary(req.file.path);
+      await fs.unlink(req.file.path);
+      photo = result.secure_url;
+    } else {
+      await fs.rename(
+        req.file.path,
+        path.resolve('src', 'public/photos', req.file.filename),
+      );
+      photo = `http://localhost:3000/photos/${req.file.filename}`;
+    }
+  }
+
+  const updatedData = { ...req.body };
+  if (photo) {
+    updatedData.photo = photo;
+  }
+
+  const result = await updateContact(contactId, updatedData, req.user._id);
 
   if (!result) {
     throw createHttpError(404, 'Contact not found');
