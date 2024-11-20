@@ -42,6 +42,10 @@ export const getContactById = async (contactId, userId) => {
 };
 
 export const createContact = async (newContact) => {
+  if (!newContact.name || !newContact.contactType) {
+    throw createHttpError(400, 'Name and contactType are required');
+  }
+
   return await Contact.create(newContact);
 };
 
