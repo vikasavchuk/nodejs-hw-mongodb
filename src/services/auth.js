@@ -87,13 +87,14 @@ export const requestResetEmail = async (email) => {
   const user = await User.findOne({ email });
 
   if (!user) {
+    console.error("User not found with token payload:", decoded);
     throw createHttpError(404, 'User not found!');
   }
 
   const resetToken = jwt.sign(
     { sub: user._id, email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: '5m' },
+    { expiresIn: '30m' },
   );
   const html = handlebars.compile(RESET_PASSWORD_TEMPLATE);
   try {
@@ -128,11 +129,11 @@ export const resetPassword = async (password, token) => {
 
     await Session.deleteOne({ userId: user._id });
   } catch (error) {
-    if (
-      error.name === 'JsonWebTokenError' ||
-      error.name === 'TokenExpiredError'
-    ) {
-      throw createHttpError(401, 'Token is expired or invalid.');
+    if (error.name === 'TokenExpiredError') {
+      throw createHttpError(401, 'Token has expired. Please request a new password reset email.');
+    }
+    if (error.name === 'JsonWebTokenError') {
+      throw createHttpError(401, 'Token is invalid. Ensure you are using the correct reset link.');
     }
 
     throw error;

@@ -10,5 +10,10 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmail = async (message) => {
-  return await transporter.sendMail(message);
+  try {
+    return await transporter.sendMail(message);
+  } catch (error) {
+    console.error('Error sending email:', error); 
+    throw createHttpError(500, 'Failed to send the email, please try again later.');
+  }
 };
