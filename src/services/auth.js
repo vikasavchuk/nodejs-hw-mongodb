@@ -87,6 +87,7 @@ export const requestResetEmail = async (email) => {
   const user = await User.findOne({ email });
 
   if (!user) {
+    console.error("User not found with token payload:", decoded);
     throw createHttpError(404, 'User not found!');
   }
 
