@@ -10,7 +10,10 @@ import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 import { isValidId } from '../middlewares/isValidId.js';
 import { validateBody } from '../middlewares/validateBody.js';
-import { contactSchema } from '../validation/validation.js';
+import {
+  contactSchema,
+  updateContactSchema,
+} from '../validation/validation.js';
 import { authenticate } from '../middlewares/authenticate.js';
 
 import { upload } from '../middlewares/multer.js';
@@ -45,7 +48,7 @@ router.patch(
   isValidId,
   jsonParser,
   authenticate,
-  validateBody(contactSchema),
+  validateBody(updateContactSchema),
   ctrlWrapper(updateContactController),
 );
 
